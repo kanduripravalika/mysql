@@ -1,0 +1,169 @@
+# CREATING SALESPEOPLE TABLE
+
+CREATE TABLE SalesPeople (
+    Snum INT PRIMARY KEY,
+    Sname VARCHAR(255) UNIQUE,
+    City VARCHAR(100),
+    Comm FLOAT
+);
+
+# INSERTING VALUES INTO SALESPEOPLE
+
+INSERT INTO SalesPeople (Snum, Sname, City, Comm) VALUES
+(1001, 'Peel', 'London', 0.12),
+(1002, 'Serres', 'Sanjose', 0.13),
+(1004, 'Motika', 'London', 0.11),
+(1007, 'Rifkin', 'Barcelona', 0.15),
+(1003, 'Axelrod', 'Newyork', 0.10);
+
+
+SELECT *
+FROM SalesPeople;
+
+Snum | Sname    | City       | Comm
+------------------------------------
+1001 | Peel     | London     | 0.12
+1002 | Serres   | Sanjose    | 0.13
+1004 | Motika   | London     | 0.11
+1007 | Rifkin   | Barcelona  | 0.15
+1003 | Axelrod  | Newyork    | 0.10
+
+# CREATING CUSTOMERS TABLE
+
+CREATE TABLE Customers (
+    Cnum INT PRIMARY KEY,
+    Cname VARCHAR(255),
+    City VARCHAR(100) NOT NULL,
+    Snum INT,
+    FOREIGN KEY (Snum) REFERENCES SalesPeople(Snum)
+);
+
+INSERT INTO Customers (Cnum, Cname, City, Snum) VALUES
+(2001, 'Hoffman', 'London', 1001),
+(2002, 'Giovanni', 'Rome', 1003),
+(2003, 'Liu', 'Sanjose', 1002),
+(2004, 'Grass', 'Berlin', 1002),
+(2006, 'Clemens', 'London', 1001),
+(2008, 'Cisneros', 'Sanjose', 1007),
+(2007, 'Pereira', 'Rome', 1004);
+
+Cnum | Cname    | City      | Snum
+----------------------------------
+2001 | Hoffman  | London    | 1001
+2002 | Giovanni | Rome      | 1003
+2003 | Liu      | Sanjose   | 1002
+2004 | Grass    | Berlin    | 1002
+2006 | Clemens  | London    | 1001
+2008 | Cisneros | Sanjose   | 1007
+2007 | Pereira  | Rome      | 1004
+
+# CREATING  ORDERS TABLE
+
+CREATE TABLE Orders (
+    Onum INT PRIMARY KEY,
+    Amt DECIMAL(10, 2),
+    Odate DATE,
+    Cnum INT,
+    Snum INT,
+    FOREIGN KEY (Cnum) REFERENCES Customers(Cnum),
+    FOREIGN KEY (Snum) REFERENCES SalesPeople(Snum)
+);
+
+INSERT INTO Orders (Onum, Amt, Odate, Cnum, Snum) VALUES
+(3001, 18.69, '1990-03-10', 2008, 1007),
+(3003, 767.19, '1990-03-10', 2001, 1001),
+(3002, 1900.10, '1990-03-10', 2007, 1004),
+(3005, 5160.45, '1990-03-10', 2003, 1002),
+(3006, 1098.16, '1990-03-10', 2008, 1007),
+(3009, 1713.23, '1990-04-10', 2002, 1003),
+(3007, 75.75, '1990-04-10', 2004, 1002),
+(3008, 4273.00, '1990-05-10', 2006, 1001),
+(3010, 1309.95, '1990-06-10', 2004, 1002),
+(3011, 9891.88, '1990-06-10', 2006, 1001);
+
+Onum  | Amt     | Odate      | Cnum  | Snum
+-------------------------------------------
+3001  | 18.69   | 3-10-1990  | 2008  | 1007
+3003  | 767.19  | 3-10-1990  | 2001  | 1001
+3002  | 1900.10 | 3-10-1990  | 2007  | 1004
+3005  | 5160.45 | 3-10-1990  | 2003  | 1002
+3006  | 1098.16 | 3-10-1990  | 2008  | 1007
+3009  | 1713.23 | 4-10-1990  | 2002  | 1003
+3007  | 75.75   | 4-10-1990  | 2004  | 1002
+3008  | 4273.00 | 5-10-1990  | 2006  | 1001
+3010  | 1309.95 | 6-10-1990  | 2004  | 1002
+3011  | 9891.88 | 6-10-1990  | 2006  | 1001
+
+
+# QUESTION 1
+Count the number of Salesperson whose name begin with ‘a’/’A’.
+
+SELECT *
+FROM SalesPeople
+WHERE UPPER(Sname) LIKE 'A%';
+
+Snum | Sname    | City      | Comm
+----------------------------------
+1002 | Serres   | Sanjose   | 0.13
+1003 | Axelrod  | Newyork   | 0.10
+
+# QUESTION 2
+Display all the Salesperson whose all orders worth is more than Rs. 2000.
+
+SELECT S.Snum, S.Sname
+FROM SalesPeople S
+WHERE NOT EXISTS (
+    SELECT *
+    FROM Orders O
+    WHERE O.Snum = S.Snum AND O.Amt <= 2000
+);
+
+Snum | Sname   
+---------------
+1007 | Rifkin  
+1003 | Axelrod 
+
+# QUESTION 3
+Count the number of Salesperson belonging to Newyork.
+
+SELECT COUNT(*) AS NumberOfSalespeopleInNewYork
+FROM SalesPeople
+WHERE City = 'Newyork';
+
+NumberOfSalespeopleInNewYork
+----------------------------
+1
+
+# QUESTION 4
+Display the number of Salespeople belonging to London and belonging to Paris.
+
+SELECT City, COUNT(*) AS NumberOfSalespeople
+FROM SalesPeople
+WHERE City IN ('London', 'Paris')
+GROUP BY City;
+
+City      | NumberOfSalespeople
+-------------------------------
+London    | 2
+
+# QUESTION 5
+Display the number of orders taken by each Salesperson and their date of orders.
+
+SELECT S.Sname AS SalespersonName, O.Onum AS OrderNumber, O.Odate AS OrderDate
+FROM SalesPeople S
+JOIN Customers C ON S.Snum = C.Snum
+JOIN Orders O ON C.Cnum = O.Cnum;
+
+SalespersonName | OrderNumber | OrderDate
+-----------------------------------------
+Rifkin          | 3001        | 3-10-1990
+Peel            | 3003        | 3-10-1990
+Pereira         | 3002        | 3-10-1990
+Liu             | 3005        | 3-10-1990
+Rifkin          | 3006        | 3-10-1990
+Giovanni        | 3009        | 4-10-1990
+Grass           | 3007        | 4-10-1990
+Clemens         | 3008        | 5-10-1990
+Grass           | 3010        | 6-10-1990
+Clemens         | 3011        | 6-10-1990
+
